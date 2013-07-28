@@ -1,0 +1,1 @@
+ADD_KLIB_TEST(Types TestUserDefinedLiterals)

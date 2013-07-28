@@ -1,0 +1,3 @@
+rm -rf build
+mkdir build
+( cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../board/pandaes/toolchain.cmake  -DCOMPILER_PREFIX=/usr/local/cross/arm32/bin/arm-linux-gnueabi- .. )

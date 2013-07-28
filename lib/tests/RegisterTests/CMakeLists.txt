@@ -1,0 +1,2 @@
+ADD_KLIB_TEST(Register TestBasicRead)
+ADD_KLIB_TEST(Register TestBasicWrite)
