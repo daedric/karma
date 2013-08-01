@@ -122,17 +122,17 @@ static inline void set_translation_table_address(L1Directory* l1_page_table)
 static inline void enable_mmu()
 {
     unsigned int reg;
-    asm volatile("mrc p15, 0, %0, c1, c0, 0" : "=r" (reg) : : "cc");
+    asm volatile("mrc2 p15, 0, %0, c1, c0, 0" : "=r" (reg) : : "cc");
     reg |= 0x1;
-    asm volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (reg) : "cc");
+    asm volatile("mcr2 p15, 0, %0, c1, c0, 0" : : "r" (reg) : "cc");
 }
 
 static inline void disable_mmu()
 {
     unsigned int reg;
-    asm volatile("mrc p15, 0, %0, c1, c0, 0" : "=r" (reg) : : "cc");
+    asm volatile("mrc2 p15, 0, %0, c1, c0, 0" : "=r" (reg) : : "cc");
     reg &= ~size_t(0x1);
-    asm volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (reg) : "cc");
+    asm volatile("mcr2 p15, 0, %0, c1, c0, 0" : : "r" (reg) : "cc");
 }
 
 

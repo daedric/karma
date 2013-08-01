@@ -2,6 +2,8 @@
 #include "klib/Utils.hpp"
 #include "klib/Logger.hpp"
 #include "klib/Register.hpp"
+#include "klib/MemoryManager.hpp"
+
 
 #include "board/Board.hpp"
 #include "board/UART.hpp"

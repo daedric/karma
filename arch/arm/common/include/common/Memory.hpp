@@ -13,7 +13,6 @@ namespace ARM
     enum class MemoryType
     {
         Devices,
-        InterruptHandler,
         Kernel,
         RAM
     };
