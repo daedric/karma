@@ -1,10 +1,3 @@
-/*
- * CPU.hpp
- *
- *  Created on: Sep 23, 2012
- *      Author: daedric
- */
-
 #ifndef __CPU_HPP__
 # define __CPU_HPP__
 
@@ -114,11 +107,6 @@ namespace CPU
 
         void setupInterruptHandlers();
 
-        void setupMMU(KLib::Logger& logger, MemoryRegion *regions, size_t nb_regions)
-        {
-            mmu_.init(logger, regions, nb_regions);
-        }
-
         void setHiVec()
         {
             GET_SYSTEM_CONTROL_REGISTER (ctrl);
@@ -171,7 +159,6 @@ namespace CPU
             return this->logger_;
         }
 
-        MMU mmu_;
     };
 
     typedef ARMV7a CurrentCPU;

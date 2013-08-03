@@ -5,6 +5,8 @@
 
 using namespace Board;
 
+static PandaES::PageAllocator __section__("data") page_allocator_;
+
 PandaES::PandaES()
 : uart3_(BOARD_CLOCK, UART3_ADDR)
 , watchdog_(WATCHDOG_ADDR)
@@ -17,22 +19,16 @@ PandaES::~PandaES()
 {
 }
 
-static CPU::MemoryRegion regions[] =
-{
- 	{0x40000000,		1_Go,		0x40000000, CPU::PageSize::P1M, CPU::MemoryType::Devices},
- 	{0x80000000,		1_Mo,		0x80000000, CPU::PageSize::P4k, CPU::MemoryType::Kernel},
- 	{0x80000000 + 1_Mo, 990_Mo,		0xC0000000, CPU::PageSize::P4k, CPU::MemoryType::RAM},
-};
-
 void PandaES::init()
 {
 //	uart3_.init(PandaES::SERIAL_BAUD_RATE);
 
+    mmu_.prepareMandatoryPage(page_allocator_);
+    mmu_.init();
+
 	current_cpu_.setHiVec();
 	size_t vbase = current_cpu_.getInterruptVectorAddress();
 	this->getDefaultLogger() << "Address to load the interrupt vector: " << vbase << KLib::endl;
-
-	current_cpu_.setupMMU(this->getDefaultLogger(), regions, KLib::getArraySize(regions));
 	current_cpu_.setupInterruptHandlers();
 
 

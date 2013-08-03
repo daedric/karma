@@ -1,16 +1,10 @@
-/*
- * Board.hpp
- *
- *  Created on: Sep 23, 2012
- *      Author: daedric
- */
-
 #ifndef __BOARD_HPP__
 # define __BOARD_HPP__
 
 # include "klib/NonCopyable.hpp"
 # include "klib/Traits.hpp"
 # include "klib/Logger.hpp"
+# include "klib/MemoryManager.hpp"
 
 # include "cpu/CPU.hpp"
 
@@ -26,6 +20,13 @@ namespace Board
         ~PandaES();
 
         void init();
+
+        using DeviceRegion  = KLib::MemoryRegion<0x40000000,        1_Go,       0x40000000, KLib::PageSize::LargePage, KLib::MemoryType::Device>;
+        using KernelRegion  = KLib::MemoryRegion<0x80000000,        10_Mo,      0x80000000, KLib::PageSize::SmallPage, KLib::MemoryType::Kernel>;
+        using RamRegion     = KLib::MemoryRegion<0x80000000 + 10_Mo, 990_Mo,    0xC0000000, KLib::PageSize::SmallPage, KLib::MemoryType::RAM>;
+        using PageAllocator = KLib::MemoryManager<CPU::MMU, DeviceRegion, KernelRegion, RamRegion>;
+
+
 
         static constexpr size_t BOARD_CLOCK             = 48000000;
         static constexpr size_t SERIAL_BAUD_RATE        = 115200;
@@ -51,6 +52,7 @@ namespace Board
         Watchdog            watchdog_;
         KLib::Logger        logger_;
         CPU::CurrentCPU     current_cpu_;
+        CPU::MMU            mmu_;
     };
 
 

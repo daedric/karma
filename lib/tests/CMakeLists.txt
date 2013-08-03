@@ -33,6 +33,7 @@ ADD_DEFINITIONS(-W
                 -fno-stack-protector)
 
 INCLUDE_DIRECTORIES("${KLIB_SOURCE_DIR}/../include")
+
 ADD_SUBDIRECTORY(RegisterTests)
 ADD_SUBDIRECTORY(TypesTests)
 ADD_SUBDIRECTORY(TraitsTests)

@@ -16,7 +16,7 @@ namespace KLib
         static_assert(OFFSET_END > OFFSET_START, "OFFSET_START > OFFSET_END");
 
         template<typename ReturnType, typename T>
-        static ReturnType getValue(T reg)
+        static constexpr ReturnType getValue(T reg)
         {
             static_assert(OFFSET_START < getSizeInBits(T()), "OFFSET_START > reg");
             static_assert(OFFSET_END <= (getSizeInBits(T())), "OFFSET_END > reg");
@@ -24,13 +24,14 @@ namespace KLib
             return (ReturnType)sliceByte(reg, OFFSET_START, OFFSET_END);
         }
 
+        static constexpr unsigned int MASK = ((1 << (OFFSET_END - OFFSET_START)) - 1) << OFFSET_START;
+
         template <typename T, typename U>
         static void setValue(T reg_addr, U value)
         {
             static_assert(Traits::is_const<typename Traits::remove_pointer<T>::type>::value == false, "The pointer is const, the register is not writable");
             auto old_value = *reg_addr;
-            constexpr unsigned int mask = ((1 << (OFFSET_END - OFFSET_START)) - 1) << OFFSET_START;
-            *reg_addr = old_value ^ ((old_value ^ (value << OFFSET_START)) & mask);
+            *reg_addr = old_value ^ ((old_value ^ (value << OFFSET_START)) & MASK);
         }
 
         template <typename T, typename U>
@@ -176,18 +177,18 @@ namespace KLib
 # include "Address.hpp"
 namespace KLib
 {
-    template <typename... RegisterValues>
-    using Default32bRegister = Register<unsigned int, Address<4>, RegisterValues...>;
 
-    template <typename... RegisterValues>
-    using Default8bRegister = Register<unsigned char, Address<1>, RegisterValues...>;
+template<typename ... RegisterValues>
+using Default32bRegister = Register<unsigned int, Address<4>, RegisterValues...>;
 
-    template <typename... RegisterValues>
-    using Volatile32bRegister = Register<unsigned int, Address<4, true, true>, RegisterValues...>;
+template<typename ... RegisterValues>
+using Default8bRegister = Register<unsigned char, Address<1>, RegisterValues...>;
 
-    template <typename... RegisterValues>
-    using Volatile8bRegister = Register<unsigned char, Address<1, true, true>, RegisterValues...>;
+template<typename ... RegisterValues>
+using Volatile32bRegister = Register<unsigned int, Address<4, true, true>, RegisterValues...>;
 
+template<typename ... RegisterValues>
+using Volatile8bRegister = Register<unsigned char, Address<1, true, true>, RegisterValues...>;
 
 }
 #endif /* REGISTER_HPP_ */

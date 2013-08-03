@@ -1,10 +1,3 @@
-/*
- * Logger.hpp
- *
- *  Created on: 7 oct. 2012
- *      Author: Daedric
- */
-
 #ifndef LOGGER_HPP_
 #define LOGGER_HPP_
 
