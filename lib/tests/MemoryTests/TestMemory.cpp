@@ -151,6 +151,7 @@ struct MemoryHandler
                              size_t pa,
                              size_t va)
     {
+        std::cout << "Map: " << (void*)va << " -> " << (void*)pa << std::endl;
         auto& l1_entry = l1[va];
         LargePageEntry lpe(&l1_entry);
         lpe.setSlicedValue<SECTION_BASE_ADDR>(pa)
@@ -165,6 +166,7 @@ struct MemoryHandler
                              size_t pa,
                              size_t va)
     {
+        std::cout << "Map: " << (void*)va << " -> " << (void*)pa << std::endl;
         auto& l1_entry = l1[va];
 
         if (!l1_entry)
@@ -188,11 +190,11 @@ struct MemoryHandler
     static bool AllocatePage(MediumPage& page, size_t base_pa, size_t pa,
                              size_t va)
     {
+        std::cout << "Map: " << (void*)va << " -> " << (void*)pa << std::endl;
         auto& l1_entry = l1[va];
 
         if (!l1_entry)
         {
-            std::cout << "Enable new entry" << std::endl;
             PageTableEntry pte(&l1_entry);
             pte.setSlicedValue<SECTION_BASE_ADDR>(size_t(&page))
                 .setValue<SECTION_TYPE>(1);
@@ -215,39 +217,43 @@ struct MemoryHandler
 MemoryHandler::Directory MemoryHandler::l1 =
 { 0 };
 
-using RamRegion = MemoryRegion <0, 1_Go, 0, PageSize::SmallPage, MemoryType::RAM>;
-using KernelRegion = MemoryRegion <0, 1_Go, 0, PageSize::LargePage, MemoryType::Kernel>;
-using DeviceRegion = MemoryRegion <0, 1_Go, 0, PageSize::MediumPage, MemoryType::Device>;
-
-using M = MemoryManager<
-                            MemoryHandler,
-                            RamRegion,
-                            KernelRegion,
-                            RamRegion,
-                            DeviceRegion>;
+using DeviceRegion  = KLib::MemoryRegion<0x40000000,         999_Mo,     0x40000000, KLib::PageSize::LargePage, KLib::MemoryType::Device>;
+using KernelRegion  = KLib::MemoryRegion<0x80000000,         10_Mo,      0x80000000, KLib::PageSize::SmallPage, KLib::MemoryType::Kernel>;
+using RamRegion     = KLib::MemoryRegion<0x80000000 + 10_Mo, 989_Mo,     0xC0000000, KLib::PageSize::SmallPage, KLib::MemoryType::RAM>;
+using M = KLib::MemoryManager<MemoryHandler, DeviceRegion, KernelRegion, RamRegion>;
 
 using DirectoryType = M::DirectoryType;
 
 M __section__("data") m;
 
-static_assert(std::is_same<M::RamPages, detail::RamPages<DirectoryType, RamRegion, RamRegion>>::value, "Ram page error!");
+static_assert(std::is_same<M::RamPages, detail::RamPages<DirectoryType, RamRegion>>::value, "Ram page error!");
 static_assert(std::is_same<M::KernelPages, detail::KernelPages<DirectoryType, KernelRegion>>::value, "Kernel page !");
 static_assert(std::is_same<M::DevicePages, detail::DevicePages<DirectoryType, DeviceRegion>>::value, "Device page!");
 
 int main(int, char**)
 {
 
-    void* memory = nullptr;
+    void* memory = nullptr, *old_memory = nullptr;
     size_t size = 0;
 
     {
-        for (size_t i = 0; i < RamRegion::nb_pages * 2; ++i)
+        for (size_t i = 0; i < RamRegion::nb_pages; ++i)
         {
             if (!m.allocateRAMPage(memory, size))
             {
                 std::cout << "Cannot allocate page" << std::endl;
                 return -1;
             }
+
+            if (old_memory > memory)
+            {
+                std::cout << "RAM old_memory > memory" << std::endl;
+                std::cout << "old: " << old_memory << std::endl;
+                std::cout << "new: " << memory << std::endl;
+                return -1;
+            }
+
+            old_memory = memory;
         }
 
         if (m.allocateRAMPage(memory, size))
@@ -257,6 +263,7 @@ int main(int, char**)
         }
     }
 
+    old_memory = nullptr;
 
     {
         for (size_t i = 0; i < KernelRegion::nb_pages; ++i)
@@ -266,6 +273,14 @@ int main(int, char**)
                 std::cout << "Cannot allocate Kernel page" << std::endl;
                 return -1;
             }
+
+            if (old_memory > memory)
+            {
+                std::cout << "KERNEL old_memory > memory" << std::endl;
+                return -1;
+            }
+
+            old_memory = memory;
         }
 
         if (m.allocateKernelPage(memory, size))
@@ -275,7 +290,7 @@ int main(int, char**)
         }
     }
 
-
+    old_memory = nullptr;
     {
         for (size_t i = 0; i < DeviceRegion::nb_pages; ++i)
         {
@@ -284,6 +299,14 @@ int main(int, char**)
                 std::cout << "Cannot allocate Kernel page" << std::endl;
                 return -1;
             }
+
+            if (old_memory > memory)
+            {
+                std::cout << "DEVICE old_memory > memory" << std::endl;
+                return -1;
+            }
+
+            old_memory = memory;
         }
 
         if (m.allocateDevicePage(memory, size))

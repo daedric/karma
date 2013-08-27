@@ -1,7 +1,7 @@
 #include "klib/Utils.hpp"
 #include "kern/CXXABI.hpp"
 
-struct atexit_entry
+static struct atexit_entry
 {
     void (*destructor)(void*);
     void *obj_inst, *dso_handle;
@@ -51,14 +51,14 @@ extern "C" int __aeabi_atexit(void (*f)(void *), void *objptr, void *dso)
     return 0;
 }
 
-extern "C" void strcpy(char* str, const char* from)
-{
-    while (*from)
-    {
-        *str++ = *from++;
-    }
-    *str = 0;
-}
+//extern "C" void strcpy(char* str, const char* from)
+//{
+//    while (*from)
+//    {
+//        *str++ = *from++;
+//    }
+//    *str = 0;
+//}
 
 extern "C" void __eabi_finalize(void *f)
 {
@@ -105,13 +105,17 @@ extern "C" void __cxa_pure_virtual()
 
 }
 
-extern "C" void* memset(void *s, int c, size_t n)
+extern "C" void* memset(void *ptr, int c, size_t size)
 {
-    for (int* mem = (int*)s; n; n--)
+    unsigned char* cptr = reinterpret_cast<unsigned char*>(ptr);
+    unsigned char cc = c;
+
+    for (; size; --size)
     {
-        *mem++ = c;
+        *cptr++ = cc;
     }
-    return s;
+
+    return ptr;
 }
 
 typedef void (*CTOR)();

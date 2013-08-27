@@ -65,7 +65,7 @@ struct MemoryRegion
 };
 
 template<typename MemoryHandler>
-struct Directory
+struct Directory : private KLib::NonCopyable
 {
     using LargePage = typename MemoryHandler::LargePage;
     using SmallPage = typename MemoryHandler::SmallPage;
@@ -119,12 +119,12 @@ template<typename Directory, typename ... Region>
 struct PagesHandler;
 
 template<typename Directory, typename Region, typename ... Regions>
-struct PagesHandler<Directory, Region, Regions...> : public PagesHandler<Directory, Regions...>
+struct PagesHandler<Directory, Region, Regions...> : public PagesHandler<Directory, Regions...>, private KLib::NonCopyable
 {
     using RegionPageType = decltype(Directory::template getPageFromSize<Region::page_size>());
     using Base = PagesHandler<Directory, Regions...>;
 
-    struct PageStates
+    struct PageStates : private KLib::NonCopyable
     {
         bool is_free;
         size_t base_pa;
@@ -133,7 +133,6 @@ struct PagesHandler<Directory, Region, Regions...> : public PagesHandler<Directo
         size_t size;
 
         RegionPageType* page;
-
         PageStates* previous;
     };
 
@@ -147,11 +146,10 @@ struct PagesHandler<Directory, Region, Regions...> : public PagesHandler<Directo
         const size_t base_pa = Region::physical_base_address;
         const size_t chunk = Region::memory_chunk;
 
-        PageStates* previous = nullptr;
         for (size_t i = 0; i < Region::nb_pages; ++i)
         {
             auto& state = pages_state[i];
-            auto const current_page = cummulated_size / Region::size;
+            auto const current_page = cummulated_size / chunk;
 
             state.is_free = true;
             state.base_pa = base_pa + chunk * current_page;
@@ -159,24 +157,31 @@ struct PagesHandler<Directory, Region, Regions...> : public PagesHandler<Directo
             state.va = va;
             state.size = size;
             state.page = &(pages_[current_page]);
-            state.previous = previous;
-            previous = &state;
 
             pa += size;
             va += size;
             cummulated_size += size;
         }
 
+        PageStates* previous = nullptr;
+        for (int i = Region::nb_pages - 1; i > -1; --i)
+        {
+            auto& state = pages_state[i];
+            state.previous = previous;
+            previous = &state;
+        }
+
         free_pages = previous;
         used_pages = nullptr;
 
+        memset(pages_, 0, sizeof(pages_));
     }
 
     bool allocate(void*& memory_start, size_t& page_size)
     {
         if (free_pages)
         {
-            auto state = *free_pages;
+            auto& state = *free_pages;
             state.is_free = false;
             bool success = Directory::AllocatePage(*state.page,
                                                    state.base_pa,
@@ -237,7 +242,7 @@ struct DevicePages: public PagesHandler<Directory, Regions...>
 }
 
 template<typename MemoryHandler, typename ...Regions>
-class MemoryManager
+class MemoryManager : private KLib::NonCopyable
 {
 public:
 

@@ -23,9 +23,9 @@ ADD_DEFINITIONS(-mcpu=cortex-a9 -march=armv7-a -mfpu=neon)
 
 ADD_DEFINITIONS(-W
                 -Wall
+                -Wextra
                 -O2
                 -fomit-frame-pointer
-                -Wextra
                 -nostdlib
                 -fno-builtin
                 -nostartfiles

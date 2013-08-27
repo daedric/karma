@@ -8,5 +8,6 @@
 # endif
 
 # define __align__(alignement) __attribute__((aligned(alignement)))
+# define __packed__ __attribute__((packed))
 
 #endif /* GCC_HPP_ */

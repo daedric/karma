@@ -5,6 +5,7 @@
 using namespace CPU;
 
 Directory __section__("data") MMU::l1;
+KLib::Logger* MMU::logger = nullptr;
 
 extern "C"
 {
@@ -42,7 +43,10 @@ static inline void disable_mmu()
 void MMU::init()
 {
     set_translation_table_address(&MMU::l1);
+
+    logger_ << "Enable mmu" << KLib::endl;
     enable_mmu();
+    logger_ << "MMU enabled" << KLib::endl;
 }
 
 void MMU::disable()
@@ -73,6 +77,7 @@ bool MMU::AllocatePage(SmallPage& page,
 
     if (!l1_entry)
     {
+        *logger << "Create new page table entry" << KLib::endl;
         PageTableEntry pte(&l1_entry);
         pte.setSlicedValue<SECTION_BASE_ADDR>(size_t(&page))
                 .setValue<SECTION_TYPE>(1);
@@ -98,6 +103,7 @@ bool MMU::AllocatePage(MediumPage& page,
 
     if (!l1_entry)
     {
+        *logger << "Create new page table entry" << KLib::endl;
         PageTableEntry pte(&l1_entry);
         pte.setSlicedValue<SECTION_BASE_ADDR>(size_t(&page))
             .setValue<SECTION_TYPE>(1);

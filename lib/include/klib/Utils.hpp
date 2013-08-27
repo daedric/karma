@@ -4,9 +4,11 @@
 # include "Types.h"
 # include "Traits.hpp"
 
+// present in CXXABI
+extern "C" void* memset(void *s, int c, size_t n);
+
 namespace KLib
 {
-
 template <typename T, size_t SIZE>
 constexpr size_t getArraySize(T (&) [SIZE])
 {

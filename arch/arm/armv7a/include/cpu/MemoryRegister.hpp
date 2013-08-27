@@ -104,9 +104,9 @@ struct LargePage
     // not needed
 };
 
-struct SmallPage
+struct SmallPage : private KLib::NonCopyable
 {
-    typedef PageEntry pages[256];
+    using pages = PageEntry[256];
 
     PageEntry& operator[](size_t index)
     {
@@ -114,11 +114,11 @@ struct SmallPage
     }
 
     pages pages_;
-} __align__(1_Ko);
+} __align__(1_Ko) __packed__;
 
-struct MediumPage
+struct MediumPage : private KLib::NonCopyable
 {
-    typedef PageEntry pages[16];
+    using pages = PageEntry[16];
 
     PageEntry& operator[](size_t index)
     {
@@ -126,11 +126,11 @@ struct MediumPage
     }
 
     pages pages_;
-} __align__(1_Ko);
+} __align__(1_Ko) __packed__;
 
-struct Directory
+struct Directory : private KLib::NonCopyable
 {
-    typedef PageEntry pages[4096];
+    using pages = PageEntry[4096];
 
     PageEntry& getPageEntry(size_t va)
     {
@@ -144,7 +144,7 @@ struct Directory
 
     pages pages_;
 
-} __align__(16_Ko);
+} __align__(16_Ko) __packed__;
 
 }
 

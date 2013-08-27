@@ -21,9 +21,9 @@ namespace Board
 
         void init();
 
-        using DeviceRegion  = KLib::MemoryRegion<0x40000000,        1_Go,       0x40000000, KLib::PageSize::LargePage, KLib::MemoryType::Device>;
-        using KernelRegion  = KLib::MemoryRegion<0x80000000,        10_Mo,      0x80000000, KLib::PageSize::SmallPage, KLib::MemoryType::Kernel>;
-        using RamRegion     = KLib::MemoryRegion<0x80000000 + 10_Mo, 990_Mo,    0xC0000000, KLib::PageSize::SmallPage, KLib::MemoryType::RAM>;
+        using DeviceRegion  = KLib::MemoryRegion<0x40000000,         999_Mo,     0x40000000, KLib::PageSize::LargePage, KLib::MemoryType::Device>;
+        using KernelRegion  = KLib::MemoryRegion<0x80000000,         30_Mo,      0x80000000, KLib::PageSize::MediumPage, KLib::MemoryType::Kernel>;
+        using RamRegion     = KLib::MemoryRegion<0x80000000 + 31_Mo, 968_Mo,     0xC0000000, KLib::PageSize::SmallPage, KLib::MemoryType::RAM>;
         using PageAllocator = KLib::MemoryManager<CPU::MMU, DeviceRegion, KernelRegion, RamRegion>;
 
 

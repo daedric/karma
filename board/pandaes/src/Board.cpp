@@ -12,6 +12,7 @@ PandaES::PandaES()
 , watchdog_(WATCHDOG_ADDR)
 , logger_(&uart3_)
 , current_cpu_(logger_)
+, mmu_(logger_)
 {
 }
 
@@ -23,12 +24,13 @@ void PandaES::init()
 {
 //	uart3_.init(PandaES::SERIAL_BAUD_RATE);
 
-    mmu_.prepareMandatoryPage(page_allocator_);
-    mmu_.init();
-
 	current_cpu_.setHiVec();
 	size_t vbase = current_cpu_.getInterruptVectorAddress();
 	this->getDefaultLogger() << "Address to load the interrupt vector: " << vbase << KLib::endl;
+
+    mmu_.prepareMandatoryPages(page_allocator_);
+    mmu_.init();
+
 	current_cpu_.setupInterruptHandlers();
 
 

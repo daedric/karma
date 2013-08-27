@@ -19,7 +19,12 @@ class MMUHelper
 class MMU
 {
 public:
-    MMU(){}
+    MMU(KLib::Logger& log)
+    : logger_(log)
+    {
+        memset(&l1, 0, sizeof(l1));
+        logger = &log;
+    }
     ~MMU(){}
 
     static inline void flushTLB()
@@ -39,8 +44,9 @@ public:
     static bool AllocatePage(MediumPage& page, size_t base_pa, size_t pa, size_t va);
 
     template <typename PageAllocator>
-    void prepareMandatoryPage(PageAllocator& alloc)
+    void prepareMandatoryPages(PageAllocator& alloc)
     {
+        logger_ << "Prepare the mandatory pages..." << KLib::endl;
         // Assume identity mapping for kernel and devices
         void* mem = nullptr;
         size_t size = 0;
@@ -49,13 +55,26 @@ public:
             auto const kern_end = size_t(get_kernel_end());
             do
             {
-                alloc.allocateKernelPage(mem, size);
+                logger_ << ".";
+                if (!alloc.allocateKernelPage(mem, size))
+                {
+                    logger_ << "Cannot allocate mandatory kernel page" << KLib::endl;
+                }
             } while (size_t(mem) + size < kern_end);
+
+            logger_ << " Kernel pages ready" << KLib::endl;
         }
 
         {
-            while (alloc.allocateDevicePage(mem, size));
+            logger_ << "Map devices pages...";
+            while (alloc.allocateDevicePage(mem, size))
+            {
+                logger_ << ".";
+            }
+            logger_ << " Device pages ready" << KLib::endl;
         }
+
+        logger_ << "Kernel mandatory pages allocated !" << KLib::endl;
     }
 
     void init();
@@ -63,6 +82,8 @@ public:
 
 private:
     static Directory l1;
+    static KLib::Logger* logger;
+    KLib::Logger& logger_;
 }
 ;
 }

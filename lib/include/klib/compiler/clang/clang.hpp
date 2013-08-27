@@ -8,6 +8,6 @@
 # endif
 
 # define __align__ (alignment) __attribute__((aligned(alignment)))
-
+# define __packed__ __attribute__((packed))
 
 #endif /* COMPILER_HPP_ */
